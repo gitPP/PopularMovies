@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -32,15 +33,7 @@ import java.util.List;
 
 public class MainActivity extends ActionBarActivity {
 
-    public class MoviesInfo {
-        String id;
-        String backdrop_path;
-        String original_title;
-        String poster_path;
-        String overview;
-        String vote_average;
-        String release_date;
-    }
+
 
     List<MoviesInfo> moviesInfoList = null;
     ImageAdapter imageAdapter = null;
@@ -50,15 +43,19 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
-
         PreferenceManager.setDefaultValues(this, R.xml.pref_general, false);
-
-
         moviesGridView = (GridView) findViewById(R.id.moviesGridView);
 
-        fetchMovies();
+        if(savedInstanceState == null || !savedInstanceState.containsKey("movies")) {
 
+            fetchMovies();
+        }else{
+            moviesInfoList = savedInstanceState.getParcelableArrayList("movies");
+            imageAdapter = new ImageAdapter(getApplicationContext(), moviesInfoList);
+            moviesGridView.setAdapter(imageAdapter);
+        }
         moviesGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -67,7 +64,7 @@ public class MainActivity extends ActionBarActivity {
                 Intent intent = new Intent(getApplicationContext(), DetailActivity.class);
                 intent.putExtra("id", moviesInfo.id);
                 intent.putExtra("poster_path", moviesInfo.poster_path);
-                intent.putExtra("backdrop_path",moviesInfo.backdrop_path);
+                intent.putExtra("backdrop_path", moviesInfo.backdrop_path);
                 intent.putExtra("original_title", moviesInfo.original_title);
                 intent.putExtra("overview", moviesInfo.overview);
                 intent.putExtra("vote_average", moviesInfo.vote_average);
@@ -121,6 +118,12 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList("movies", (ArrayList<? extends Parcelable>) moviesInfoList);
     }
 
     public class FetchMovies extends AsyncTask<String, Void, Integer>{

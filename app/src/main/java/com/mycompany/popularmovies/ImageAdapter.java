@@ -13,12 +13,12 @@ import java.util.List;
 /**
  * Created by Priya on 9/1/15.
  */
-public class ImageAdapter extends ArrayAdapter<MainActivity.MoviesInfo> {
+public class ImageAdapter extends ArrayAdapter<MoviesInfo> {
 
     private  Context context;
-    private List<MainActivity.MoviesInfo> moviesInfoList;
+    private List<MoviesInfo> moviesInfoList;
 
-    public ImageAdapter(Context context,List<MainActivity.MoviesInfo> moviesInfoList) {
+    public ImageAdapter(Context context,List<MoviesInfo> moviesInfoList) {
 
         super(context, R.layout.activity_main, moviesInfoList);
 
