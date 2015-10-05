@@ -1,4 +1,4 @@
-package com.mycompany.popularmovies;
+package com.mycompany.popluarmovies_i;
 
 import android.content.Context;
 import android.view.View;
@@ -11,14 +11,14 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 /**
- * Created by Priya on 9/1/15.
+ * Created by Priya on 10/5/15.
  */
-public class ImageAdapter extends ArrayAdapter<MainActivity.MoviesInfo> {
+public class ImageAdapter extends ArrayAdapter<MoviesInfo> {
 
-    private  Context context;
-    private List<MainActivity.MoviesInfo> moviesInfoList;
+    private Context context;
+    private List<MoviesInfo> moviesInfoList;
 
-    public ImageAdapter(Context context,List<MainActivity.MoviesInfo> moviesInfoList) {
+    public ImageAdapter(Context context,List<MoviesInfo> moviesInfoList) {
 
         super(context, R.layout.activity_main, moviesInfoList);
 
@@ -52,3 +52,4 @@ public class ImageAdapter extends ArrayAdapter<MainActivity.MoviesInfo> {
 
 
 }
+

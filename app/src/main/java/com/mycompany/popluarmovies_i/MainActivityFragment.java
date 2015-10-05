@@ -1,4 +1,4 @@
-package com.mycompany.popularmovies;
+package com.mycompany.popluarmovies_i;
 
 import android.content.Context;
 import android.content.Intent;
@@ -6,12 +6,13 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
@@ -30,44 +31,51 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends ActionBarActivity {
-
-    public class MoviesInfo {
-        String id;
-        String backdrop_path;
-        String original_title;
-        String poster_path;
-        String overview;
-        String vote_average;
-        String release_date;
-    }
+/**
+ * A placeholder fragment containing a simple view.
+ */
+public class MainActivityFragment extends Fragment {
 
     List<MoviesInfo> moviesInfoList = null;
     ImageAdapter imageAdapter = null;
     Context context;
     GridView moviesGridView;
 
+    public MainActivityFragment() {
+    }
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        // Add this line in order for this fragment to handle menu events.
+        setHasOptionsMenu(true);
+    }
 
-        PreferenceManager.setDefaultValues(this, R.xml.pref_general, false);
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
+        PreferenceManager.setDefaultValues(getActivity(), R.xml.pref_general, false);
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        moviesGridView = (GridView) rootView.findViewById(R.id.moviesGridView);
 
-        moviesGridView = (GridView) findViewById(R.id.moviesGridView);
+        if(savedInstanceState == null || !savedInstanceState.containsKey("movies")) {
 
-        fetchMovies();
-
+            fetchMovies();
+        }else{
+            moviesInfoList = savedInstanceState.getParcelableArrayList("movies");
+            imageAdapter = new ImageAdapter(getActivity(), moviesInfoList);
+            moviesGridView.setAdapter(imageAdapter);
+        }
         moviesGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MoviesInfo moviesInfo = moviesInfoList.get(position);
 
-                Intent intent = new Intent(getApplicationContext(), DetailActivity.class);
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
                 intent.putExtra("id", moviesInfo.id);
                 intent.putExtra("poster_path", moviesInfo.poster_path);
-                intent.putExtra("backdrop_path",moviesInfo.backdrop_path);
+                intent.putExtra("backdrop_path", moviesInfo.backdrop_path);
                 intent.putExtra("original_title", moviesInfo.original_title);
                 intent.putExtra("overview", moviesInfo.overview);
                 intent.putExtra("vote_average", moviesInfo.vote_average);
@@ -79,51 +87,36 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
-
+        return rootView;
     }
 
     @Override
-    protected void onStart() {
+    public void onStart() {
         super.onStart();
 
-       fetchMovies();
+        //fetchMovies();
 
+    }
+
+
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList("movies", (ArrayList<? extends Parcelable>) moviesInfoList);
     }
 
     private void fetchMovies(){
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sortType = prefs.getString("sort","popularity.desc");
 
         FetchMovies fetchMovies = new FetchMovies();
         fetchMovies.execute(sortType);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    public class FetchMovies extends AsyncTask<String, Void, Integer>{
+    public class FetchMovies extends AsyncTask<String, Void, Integer> {
 
         private  final String TAG = FetchMovies.class.getSimpleName();
 
@@ -148,7 +141,7 @@ public class MainActivity extends ActionBarActivity {
                         .build();
 
                 URL url = new URL(builtUri.toString());
-                Log.v(TAG,url.toString());
+                Log.v(TAG, url.toString());
 
                 urlConnection = (HttpURLConnection)url.openConnection();
                  /* for Get request */
@@ -179,7 +172,7 @@ public class MainActivity extends ActionBarActivity {
             super.onPostExecute(result);
 
             if (result == 1 ) {
-                imageAdapter = new ImageAdapter(getApplicationContext(), moviesInfoList);
+                imageAdapter = new ImageAdapter(getActivity(), moviesInfoList);
                 moviesGridView.setAdapter(imageAdapter);
 
 
