@@ -14,6 +14,7 @@ public class MoviesInfo implements Parcelable {
     String overview;
     String vote_average;
     String release_date;
+    Boolean isFavorite;
 
     public  MoviesInfo(){
 
@@ -27,6 +28,7 @@ public class MoviesInfo implements Parcelable {
         overview = in.readString();
         vote_average = in.readString();
         release_date = in.readString();
+        isFavorite = in.readByte() != 0; //isFavorite == true if byte != 0
 
     }
 
@@ -36,7 +38,7 @@ public class MoviesInfo implements Parcelable {
     }
 
     public String toString() { return id + "--" + backdrop_path + "--" + original_title + "--" + poster_path
-            + "--" + overview + "--" + vote_average + "--" + release_date; }
+            + "--" + overview + "--" + vote_average + "--" + release_date + "--" + isFavorite; }
 
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
@@ -47,10 +49,12 @@ public class MoviesInfo implements Parcelable {
         parcel.writeString(overview);
         parcel.writeString(vote_average);
         parcel.writeString(release_date);
+        parcel.writeByte((byte) (isFavorite ? 1 : 0)); //if isFavorite == true, byte == 1
+
 
     }
 
-    public final Parcelable.Creator<MoviesInfo> CREATOR = new Parcelable.Creator<MoviesInfo>(){
+    public static final Parcelable.Creator<MoviesInfo> CREATOR = new Parcelable.Creator<MoviesInfo>(){
         @Override
         public MoviesInfo createFromParcel(Parcel parcel) {
             return new MoviesInfo(parcel);

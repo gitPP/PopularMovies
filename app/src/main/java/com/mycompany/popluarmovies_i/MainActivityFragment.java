@@ -40,6 +40,9 @@ public class MainActivityFragment extends Fragment {
     ImageAdapter imageAdapter = null;
     Context context;
     GridView moviesGridView;
+    //String sortType;
+
+
 
     public MainActivityFragment() {
     }
@@ -49,6 +52,17 @@ public class MainActivityFragment extends Fragment {
         super.onCreate(savedInstanceState);
         // Add this line in order for this fragment to handle menu events.
         setHasOptionsMenu(true);
+        if (savedInstanceState == null || !savedInstanceState.containsKey("movies")) {
+            Log.v("In onCreate"," IF PART");
+            moviesInfoList = new ArrayList<MoviesInfo>();
+
+
+        } else {
+            Log.v("In onCreate"," ELSE PART");
+            moviesInfoList = savedInstanceState.getParcelableArrayList("movies");
+
+
+        }
     }
 
     @Override
@@ -56,17 +70,12 @@ public class MainActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         PreferenceManager.setDefaultValues(getActivity(), R.xml.pref_general, false);
+
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         moviesGridView = (GridView) rootView.findViewById(R.id.moviesGridView);
+        imageAdapter = new ImageAdapter(getActivity(), moviesInfoList);
+        moviesGridView.setAdapter(imageAdapter);
 
-        if(savedInstanceState == null || !savedInstanceState.containsKey("movies")) {
-
-            fetchMovies();
-        }else{
-            moviesInfoList = savedInstanceState.getParcelableArrayList("movies");
-            imageAdapter = new ImageAdapter(getActivity(), moviesInfoList);
-            moviesGridView.setAdapter(imageAdapter);
-        }
         moviesGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -80,6 +89,7 @@ public class MainActivityFragment extends Fragment {
                 intent.putExtra("overview", moviesInfo.overview);
                 intent.putExtra("vote_average", moviesInfo.vote_average);
                 intent.putExtra("release_date", moviesInfo.release_date);
+                intent.putExtra("isFavorite",moviesInfo.isFavorite);
 
 
                 startActivity(intent);
@@ -90,35 +100,50 @@ public class MainActivityFragment extends Fragment {
         return rootView;
     }
 
+
+
     @Override
     public void onStart() {
         super.onStart();
+        fetchMovies();
 
-        //fetchMovies();
 
     }
-
-
 
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList("movies", (ArrayList<? extends Parcelable>) moviesInfoList);
+
     }
 
-    private void fetchMovies(){
+    private void fetchMovies() {
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sortType = prefs.getString("sort","popularity.desc");
+        String sortType = prefs.getString("sort", "popularity.desc");
+        Log.v("sorttype", sortType);
+        //if((sortType == "popularity.desc")|| (sortType == "vote_average.desc") ){
+        if(!(sortType.equals("favorites")) ){
+            Log.v("Inside fetchMovies","Inside fetchMovies");
+            FetchMovies fetchMovies = new FetchMovies();
+            fetchMovies.execute(sortType);
+        }else{
+            Log.v("Loading from sharedpref","Loading from sharedpref");
+            SharedPreference sharedPreference = new SharedPreference();
+            moviesInfoList = sharedPreference.loadFavorites(getActivity());
+            //sharedPreference.removeAllFavorite(getActivity());
+            imageAdapter = new ImageAdapter(getActivity(), moviesInfoList);
+            moviesGridView.setAdapter(imageAdapter);
+        }
 
-        FetchMovies fetchMovies = new FetchMovies();
-        fetchMovies.execute(sortType);
+
+
     }
 
     public class FetchMovies extends AsyncTask<String, Void, Integer> {
 
-        private  final String TAG = FetchMovies.class.getSimpleName();
+        private final String TAG = FetchMovies.class.getSimpleName();
 
         @Override
         protected Integer doInBackground(String... params) {
@@ -127,7 +152,7 @@ public class MainActivityFragment extends Fragment {
             HttpURLConnection urlConnection = null;
             Integer result = 0;
 
-            try{
+            try {
                 final String BASE_URL =
                         "http://api.themoviedb.org/3/discover/movie?";
                 final String SORT_PARAM = "sort_by";
@@ -143,7 +168,7 @@ public class MainActivityFragment extends Fragment {
                 URL url = new URL(builtUri.toString());
                 Log.v(TAG, url.toString());
 
-                urlConnection = (HttpURLConnection)url.openConnection();
+                urlConnection = (HttpURLConnection) url.openConnection();
                  /* for Get request */
                 urlConnection.setRequestMethod("GET");
                 int statusCode = urlConnection.getResponseCode();
@@ -152,7 +177,7 @@ public class MainActivityFragment extends Fragment {
                 if (statusCode == 200) {
                     inputStream = new BufferedInputStream(urlConnection.getInputStream());
                     String response = convertInputStreamToString(inputStream);
-                    Log.v(TAG,response);
+                    Log.v(TAG, response);
                     processMoviesInfo(response);
                     result = 1; // Successful
                 } else {
@@ -160,7 +185,7 @@ public class MainActivityFragment extends Fragment {
                 }
 
 
-            }catch (Exception e) {
+            } catch (Exception e) {
                 Log.d(TAG, e.getLocalizedMessage());
             }
 
@@ -171,10 +196,9 @@ public class MainActivityFragment extends Fragment {
         protected void onPostExecute(Integer result) {
             super.onPostExecute(result);
 
-            if (result == 1 ) {
+            if (result == 1) {
                 imageAdapter = new ImageAdapter(getActivity(), moviesInfoList);
                 moviesGridView.setAdapter(imageAdapter);
-
 
 
             }
@@ -182,11 +206,11 @@ public class MainActivityFragment extends Fragment {
     }
 
     private String convertInputStreamToString(InputStream inputStream) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         String line = "";
         String result = "";
         StringBuffer buffer = new StringBuffer();
-        while((line = bufferedReader.readLine()) != null){
+        while ((line = bufferedReader.readLine()) != null) {
             //result += line;
 
             buffer.append(line + "\n");
@@ -194,7 +218,7 @@ public class MainActivityFragment extends Fragment {
         result = buffer.toString();
 
             /* Close Stream */
-        if(null!=inputStream){
+        if (null != inputStream) {
             inputStream.close();
         }
         return result;
@@ -208,7 +232,7 @@ public class MainActivityFragment extends Fragment {
         JSONObject movieJson = new JSONObject(infoString);
         JSONArray resultArray = movieJson.getJSONArray("results");
 
-        for (int i=0; i < resultArray.length(); i++){
+        for (int i = 0; i < resultArray.length(); i++) {
 
             // Get the JSON object representing the movie
             JSONObject movie = resultArray.getJSONObject(i);
@@ -220,6 +244,7 @@ public class MainActivityFragment extends Fragment {
             moviesInfo.overview = movie.getString("overview");
             moviesInfo.release_date = movie.getString("release_date");
             moviesInfo.vote_average = movie.getString("vote_average");
+            moviesInfo.isFavorite = false;
             moviesInfoList.add(moviesInfo);
         }
 

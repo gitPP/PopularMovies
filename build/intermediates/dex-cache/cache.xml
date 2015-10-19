@@ -2,11 +2,18 @@
 <items version="2" >
 
     <item
-        jar="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.1/jars/libs/internal_impl-22.2.1.jar"
+        jar="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/jars/classes.jar"
         jumboMode="false"
         revision="22.0.1"
-        sha1="c471eaaba13ff64f6e0383d1c30a9cdc9a97efeb">
-        <dex dex="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/pre-dexed/debug/internal_impl-22.2.1-b5b493cc57bb2510632bb173cc8987d56c31704d.jar" />
+        sha1="4486e953d1f35f8ccab098b1dd67146366d5f731">
+        <dex dex="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/pre-dexed/debug/classes-530839ef392d91e1aa9ba490166c50c2b8a41737.jar" />
+    </item>
+    <item
+        jar="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.1/jars/classes.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="f8efd0096475e0daf054267b61544e10dc776503">
+        <dex dex="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/pre-dexed/debug/classes-6f63ae6eee90fcf7b059a37fb253518c662b50a7.jar" />
     </item>
     <item
         jar="/Users/Priya/.gradle/caches/modules-2/files-2.1/com.squareup.picasso/picasso/2.5.2/7446d06ec8d4f7ffcc53f1da37c95f200dcb9387/picasso-2.5.2.jar"
@@ -23,18 +30,18 @@
         <dex dex="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/pre-dexed/debug/support-annotations-22.2.1-30443cd4640d4ada400bbc1a1a68fdde0dad9fd6.jar" />
     </item>
     <item
-        jar="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/jars/classes.jar"
+        jar="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.1/jars/libs/internal_impl-22.2.1.jar"
         jumboMode="false"
         revision="22.0.1"
-        sha1="4486e953d1f35f8ccab098b1dd67146366d5f731">
-        <dex dex="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/pre-dexed/debug/classes-530839ef392d91e1aa9ba490166c50c2b8a41737.jar" />
+        sha1="c471eaaba13ff64f6e0383d1c30a9cdc9a97efeb">
+        <dex dex="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/pre-dexed/debug/internal_impl-22.2.1-b5b493cc57bb2510632bb173cc8987d56c31704d.jar" />
     </item>
     <item
-        jar="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.1/jars/classes.jar"
+        jar="/Users/Priya/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.3/5fc52c41ef0239d1093a1eb7c3697036183677ce/gson-2.3.jar"
         jumboMode="false"
         revision="22.0.1"
-        sha1="f8efd0096475e0daf054267b61544e10dc776503">
-        <dex dex="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/pre-dexed/debug/classes-6f63ae6eee90fcf7b059a37fb253518c662b50a7.jar" />
+        sha1="5fc52c41ef0239d1093a1eb7c3697036183677ce">
+        <dex dex="/Users/Priya/AndroidStudioProjects/PopluarMovies-I/app/build/intermediates/pre-dexed/debug/gson-2.3-575c93d65b9d477481f5bd56af97cf21754a4b39.jar" />
     </item>
 
 </items>
