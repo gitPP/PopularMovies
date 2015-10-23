@@ -1,4 +1,4 @@
-package com.mycompany.popularmovies;
+package com.mycompany.popluarmovies_i;
 
 import android.os.Bundle;
 import android.preference.ListPreference;

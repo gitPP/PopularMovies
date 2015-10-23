@@ -1,17 +1,17 @@
-package com.mycompany.popularmovies;
+package com.mycompany.popluarmovies_i;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
@@ -30,102 +30,112 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends ActionBarActivity {
-
-    public class MoviesInfo {
-        String id;
-        String backdrop_path;
-        String original_title;
-        String poster_path;
-        String overview;
-        String vote_average;
-        String release_date;
-    }
+/**
+ * A placeholder fragment containing a simple view.
+ */
+public class MainActivityFragment extends Fragment {
 
     List<MoviesInfo> moviesInfoList = null;
     ImageAdapter imageAdapter = null;
     Context context;
     GridView moviesGridView;
+    Boolean isRrstored = false;
+
+    public interface Callback {
+
+        public void onItemSelected (Bundle bundle);
+    }
+
+
+
+    public MainActivityFragment() {
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        // Add this line in order for this fragment to handle menu events.
+        setHasOptionsMenu(true);
 
-        PreferenceManager.setDefaultValues(this, R.xml.pref_general, false);
+        if (savedInstanceState == null || !savedInstanceState.containsKey("movies")) {
 
+            moviesInfoList = new ArrayList<MoviesInfo>();
 
-        moviesGridView = (GridView) findViewById(R.id.moviesGridView);
+        } else {
 
-        fetchMovies();
+            moviesInfoList = savedInstanceState.getParcelableArrayList("movies");
+            isRrstored = true;
+        }
+    }
+
+    @Override
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        PreferenceManager.setDefaultValues(getActivity(), R.xml.pref_general, false);
+
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        moviesGridView = (GridView) rootView.findViewById(R.id.moviesGridView);
+        imageAdapter = new ImageAdapter(getActivity(), moviesInfoList);
+        moviesGridView.setAdapter(imageAdapter);
 
         moviesGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MoviesInfo moviesInfo = moviesInfoList.get(position);
-
-                Intent intent = new Intent(getApplicationContext(), DetailActivity.class);
-                intent.putExtra("id", moviesInfo.id);
-                intent.putExtra("poster_path", moviesInfo.poster_path);
-                intent.putExtra("backdrop_path",moviesInfo.backdrop_path);
-                intent.putExtra("original_title", moviesInfo.original_title);
-                intent.putExtra("overview", moviesInfo.overview);
-                intent.putExtra("vote_average", moviesInfo.vote_average);
-                intent.putExtra("release_date", moviesInfo.release_date);
-
-
-                startActivity(intent);
+                Bundle bundle = new Bundle();
+                bundle.putParcelable("moviesInfo", moviesInfo);
+                ((Callback) getActivity()).onItemSelected(bundle);
 
             }
         });
 
-
+        return rootView;
     }
 
+
+
     @Override
-    protected void onStart() {
+    public void onStart() {
         super.onStart();
+        fetchMovies();
 
-       fetchMovies();
 
     }
 
-    private void fetchMovies(){
-
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String sortType = prefs.getString("sort","popularity.desc");
-
-        FetchMovies fetchMovies = new FetchMovies();
-        fetchMovies.execute(sortType);
-    }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList("movies", (ArrayList<? extends Parcelable>) moviesInfoList);
 
-        return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+    private void fetchMovies() {
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-            return true;
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortType = prefs.getString("sort", "popularity.desc");
+        if(!isRrstored){
+            if(!(sortType.equals("favorites")) ){
+                Log.v("Inside fetchMovies","Inside fetchMovies");
+                FetchMovies fetchMovies = new FetchMovies();
+                fetchMovies.execute(sortType);
+            }else{
+                Log.v("Loading from sharedpref","Loading from sharedpref");
+                SharedPreference sharedPreference = new SharedPreference();
+                moviesInfoList = sharedPreference.loadFavorites(getActivity());
+                //sharedPreference.removeAllFavorite(getActivity());
+                imageAdapter = new ImageAdapter(getActivity(), moviesInfoList);
+                moviesGridView.setAdapter(imageAdapter);
+            }
         }
+        isRrstored = false;
 
-        return super.onOptionsItemSelected(item);
     }
 
-    public class FetchMovies extends AsyncTask<String, Void, Integer>{
+    public class FetchMovies extends AsyncTask<String, Void, Integer> {
 
-        private  final String TAG = FetchMovies.class.getSimpleName();
+        private final String TAG = FetchMovies.class.getSimpleName();
 
         @Override
         protected Integer doInBackground(String... params) {
@@ -134,7 +144,7 @@ public class MainActivity extends ActionBarActivity {
             HttpURLConnection urlConnection = null;
             Integer result = 0;
 
-            try{
+            try {
                 final String BASE_URL =
                         "http://api.themoviedb.org/3/discover/movie?";
                 final String SORT_PARAM = "sort_by";
@@ -148,9 +158,9 @@ public class MainActivity extends ActionBarActivity {
                         .build();
 
                 URL url = new URL(builtUri.toString());
-                Log.v(TAG,url.toString());
+                Log.v(TAG, url.toString());
 
-                urlConnection = (HttpURLConnection)url.openConnection();
+                urlConnection = (HttpURLConnection) url.openConnection();
                  /* for Get request */
                 urlConnection.setRequestMethod("GET");
                 int statusCode = urlConnection.getResponseCode();
@@ -159,7 +169,7 @@ public class MainActivity extends ActionBarActivity {
                 if (statusCode == 200) {
                     inputStream = new BufferedInputStream(urlConnection.getInputStream());
                     String response = convertInputStreamToString(inputStream);
-                    Log.v(TAG,response);
+                    Log.v(TAG, response);
                     processMoviesInfo(response);
                     result = 1; // Successful
                 } else {
@@ -167,7 +177,7 @@ public class MainActivity extends ActionBarActivity {
                 }
 
 
-            }catch (Exception e) {
+            } catch (Exception e) {
                 Log.d(TAG, e.getLocalizedMessage());
             }
 
@@ -178,10 +188,9 @@ public class MainActivity extends ActionBarActivity {
         protected void onPostExecute(Integer result) {
             super.onPostExecute(result);
 
-            if (result == 1 ) {
-                imageAdapter = new ImageAdapter(getApplicationContext(), moviesInfoList);
+            if (result == 1) {
+                imageAdapter = new ImageAdapter(getActivity(), moviesInfoList);
                 moviesGridView.setAdapter(imageAdapter);
-
 
 
             }
@@ -189,11 +198,11 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private String convertInputStreamToString(InputStream inputStream) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         String line = "";
         String result = "";
         StringBuffer buffer = new StringBuffer();
-        while((line = bufferedReader.readLine()) != null){
+        while ((line = bufferedReader.readLine()) != null) {
             //result += line;
 
             buffer.append(line + "\n");
@@ -201,7 +210,7 @@ public class MainActivity extends ActionBarActivity {
         result = buffer.toString();
 
             /* Close Stream */
-        if(null!=inputStream){
+        if (null != inputStream) {
             inputStream.close();
         }
         return result;
@@ -215,7 +224,7 @@ public class MainActivity extends ActionBarActivity {
         JSONObject movieJson = new JSONObject(infoString);
         JSONArray resultArray = movieJson.getJSONArray("results");
 
-        for (int i=0; i < resultArray.length(); i++){
+        for (int i = 0; i < resultArray.length(); i++) {
 
             // Get the JSON object representing the movie
             JSONObject movie = resultArray.getJSONObject(i);
@@ -227,6 +236,7 @@ public class MainActivity extends ActionBarActivity {
             moviesInfo.overview = movie.getString("overview");
             moviesInfo.release_date = movie.getString("release_date");
             moviesInfo.vote_average = movie.getString("vote_average");
+            moviesInfo.isFavorite = false;
             moviesInfoList.add(moviesInfo);
         }
 
